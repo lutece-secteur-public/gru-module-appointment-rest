@@ -190,6 +190,7 @@ public class SolrProvider implements IAppointmentDataProvider
                 .append( SolrMeetingPointPOJO.SOLR_FIELD_TYPE_APPOINTMENT );
         query.append( AppointmentRestConstants.SOLR_QUERY_GROUP );
         query.append( AppointmentRestConstants.SOLR_QUERY_GROUP_FIELD + SolrMeetingPointPOJO.SOLR_FIELD_UID );
+        query.append( AppointmentRestConstants.SOLR_QUERY_FILTER_ROWS + _strRows );
         return query;
     }
 
