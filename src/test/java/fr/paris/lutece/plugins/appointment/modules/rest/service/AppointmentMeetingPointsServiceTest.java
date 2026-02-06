@@ -36,17 +36,20 @@ package fr.paris.lutece.plugins.appointment.modules.rest.service;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.MeetingPointPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrMeetingPointPOJO;
 import fr.paris.lutece.test.LuteceTestCase;
-import org.junit.Test;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class AppointmentMeetingPointsServiceTest extends LuteceTestCase
 {
+    @Inject
+    private AppointmentMeetingPointsService _appointmentMeetingPointsService;
+
     @Test
     public void testTransform( )
     {
-
         SolrMeetingPointPOJO pojo1 = new SolrMeetingPointPOJO( );
         pojo1.setTitle( "Pojo1" );
         pojo1.setUid( "uid1" );
@@ -61,7 +64,7 @@ public class AppointmentMeetingPointsServiceTest extends LuteceTestCase
 
         List<SolrMeetingPointPOJO> solrMeetings = Arrays.asList( pojo1, pojo2 );
 
-        List<MeetingPointPOJO> manegedPoints = AppointmentMeetingPointsService.getInstance( ).transform( solrMeetings );
+        List<MeetingPointPOJO> manegedPoints = _appointmentMeetingPointsService.transform( solrMeetings );
         assertEquals( 2, solrMeetings.size( ) );
         assertEquals( "11", manegedPoints.get( 0 ).getLatitude( ) );
         assertEquals( "22", manegedPoints.get( 0 ).getLongitude( ) );

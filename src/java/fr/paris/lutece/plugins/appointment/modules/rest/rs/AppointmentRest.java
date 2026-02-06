@@ -46,20 +46,20 @@ import fr.paris.lutece.plugins.rest.service.RestConstants;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.stereotype.Component;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@ApplicationScoped
 @Path( RestConstants.BASE_PATH + AppointmentPlugin.PLUGIN_NAME )
 public class AppointmentRest
 {
@@ -73,7 +73,7 @@ public class AppointmentRest
     @GET
     @Path( AppointmentRestConstants.SLASH + AppointmentRestConstants.PATH_API + AppointmentRestConstants.SLASH + AppointmentRestConstants.PATH_AVAILABLE_SLOTS )
     @Produces( MediaType.APPLICATION_JSON )
-    public Response getAvailableTimeSlots( @Context ContainerRequestContext request,
+    public Response getAvailableTimeSlots( @Context HttpServletRequest request,
             @QueryParam( value = AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS ) List<String> appointementIds,
             @QueryParam( value = AppointmentRestConstants.JSON_TAG_START_DATE ) String startDate,
             @QueryParam( value = AppointmentRestConstants.JSON_TAG_END_DATE ) String endDate,

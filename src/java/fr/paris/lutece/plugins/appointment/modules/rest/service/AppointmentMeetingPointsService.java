@@ -33,10 +33,8 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.rest.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.paris.lutece.plugins.appointment.modules.rest.business.providers.IAppointmentDataProvider;
-import fr.paris.lutece.plugins.appointment.modules.rest.business.providers.SolrProvider;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.MeetingPointPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrMeetingPointPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrResponseMeetingPointPOJO;
@@ -45,41 +43,32 @@ import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@ApplicationScoped
 public class AppointmentMeetingPointsService
 {
 
     private static final String PROPERTY_WEBSITE_URL = "appointment-rest.website.url";
 
-    private static IAppointmentDataProvider _dataProvider;
-    private static AppointmentMeetingPointsService _instance;
-    private static String _strWebsiteURL;
+    @Inject
+    private IAppointmentDataProvider _dataProvider;
+
+    private String _strWebsiteURL;
     private static final Pattern ZIP_CITY_PATTERN = Pattern.compile( "(.*)(\\d{5})\\s+(.+)" );
 
-    public static synchronized AppointmentMeetingPointsService getInstance( )
+    @PostConstruct
+    public void init( )
     {
-        if ( _instance == null )
-        {
-            _instance = new AppointmentMeetingPointsService( );
-            _instance.init( );
-        }
-
-        return _instance;
-    }
-
-    private synchronized void init( )
-    {
-        if ( _dataProvider == null )
-        {
-            _dataProvider = SolrProvider.getInstance( );
-            AppLogService.info( "DatatProvider loaded : " + _dataProvider.getName( ) );
-        }
-
+        AppLogService.info( "DatatProvider loaded : {}", _dataProvider.getName( ) );
         _strWebsiteURL = AppPropertiesService.getProperty( PROPERTY_WEBSITE_URL, MeetingPointPOJO.DEFAULT_WEBSITE_URL_RDV );
     }
 

@@ -39,24 +39,30 @@ import fr.paris.lutece.plugins.appointment.modules.rest.pojo.InfoSlot;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.MeetingPointPOJO;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import java.util.List;
 import java.util.Map;
 
+@ApplicationScoped
 public class AppointmentRestService implements IAppointmentRestService
 {
+    @Inject
+    private AppointmentSlotsService _appointmentSlotsService;
+
+    @Inject
+    private AppointmentMeetingPointsService _appointmentMeetingPointsService;
+
     @Override
     public Map<String, List<InfoSlot>> getAvailableTimeSlots( AppointmentSlotsSearchPOJO search ) throws HttpAccessException, JsonProcessingException
     {
-        AppointmentSlotsService appointmentSlotsService = AppointmentSlotsService.getInstance( );
-
-        return appointmentSlotsService.getAvailableTimeSlotsAsList( search );
+        return _appointmentSlotsService.getAvailableTimeSlotsAsList( search );
     }
 
     @Override
     public List<MeetingPointPOJO> getManagedMeetingPoints( ) throws HttpAccessException, JsonProcessingException
     {
-        AppointmentMeetingPointsService appointmentMeetingPointsService = AppointmentMeetingPointsService.getInstance( );
-
-        return appointmentMeetingPointsService.getManagedMeetingPoints( );
+        return _appointmentMeetingPointsService.getManagedMeetingPoints( );
     }
 }
