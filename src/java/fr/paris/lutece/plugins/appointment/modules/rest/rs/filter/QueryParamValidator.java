@@ -36,8 +36,7 @@ package fr.paris.lutece.plugins.appointment.modules.rest.rs.filter;
 import fr.paris.lutece.plugins.appointment.modules.rest.util.contsants.AppointmentRestConstants;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
@@ -55,35 +54,32 @@ public class QueryParamValidator
     {
     }
 
-    public static ValidationErrorResponse validate( ContainerRequestContext requestContext )
+    public static ValidationErrorResponse validate( HttpServletRequest request )
     {
-
-        MultivaluedMap<String, String> queryParameters = requestContext.getUriInfo( ).getQueryParameters( );
-
         ValidationErrorResponse errors = new ValidationErrorResponse( );
-        if ( !queryParameters.containsKey( AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS ) )
+        if ( request.getParameter( AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS ) == null )
         {
             errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS,
                     AppPropertiesService.getProperty( MEETING_IDS_REQUIRED, "Champs meeting_point_ids requis" ), REQUIRED) );
         }
-        if ( !queryParameters.containsKey( AppointmentRestConstants.JSON_TAG_START_DATE ) )
+        if ( request.getParameter( AppointmentRestConstants.JSON_TAG_START_DATE ) == null )
         {
             errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_START_DATE,
                     AppPropertiesService.getProperty( START_DATE_REQUIRED, "Champs start_date requis" ), REQUIRED) );
         }
         else
-            if ( !isValideDate( queryParameters.getFirst( AppointmentRestConstants.JSON_TAG_START_DATE ) ) )
+            if ( !isValideDate( request.getParameter( AppointmentRestConstants.JSON_TAG_START_DATE ) ) )
             {
                 errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_START_DATE,
                         AppPropertiesService.getProperty( START_DATE_INVALID, "Format du champs start_date invalide" ), "Invalid" ) );
             }
-        if ( !queryParameters.containsKey( AppointmentRestConstants.JSON_TAG_END_DATE ) )
+        if ( request.getParameter( AppointmentRestConstants.JSON_TAG_END_DATE ) == null )
         {
             errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_END_DATE,
                     AppPropertiesService.getProperty( END_DATE_REQUIRED, "Champs end_date requis" ), REQUIRED) );
         }
         else
-            if ( !isValideDate( queryParameters.getFirst( AppointmentRestConstants.JSON_TAG_END_DATE ) ) )
+            if ( !isValideDate( request.getParameter( AppointmentRestConstants.JSON_TAG_END_DATE ) ) )
             {
                 errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_END_DATE,
                         AppPropertiesService.getProperty( END_DATE_INVALID, "Format du champs end_date invalide" ), "Invalid" ) );

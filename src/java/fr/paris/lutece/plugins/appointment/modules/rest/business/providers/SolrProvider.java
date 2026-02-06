@@ -46,6 +46,9 @@ import fr.paris.lutece.util.httpaccess.HttpAccessException;
 import fr.paris.lutece.util.signrequest.BasicAuthorizationAuthenticator;
 import org.apache.commons.lang3.StringUtils;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.LocalDate;
@@ -53,6 +56,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@ApplicationScoped
 public class SolrProvider implements IAppointmentDataProvider
 {
 
@@ -65,10 +69,9 @@ public class SolrProvider implements IAppointmentDataProvider
     private static final String PROPERTY_SOLR_USERNAME = "appointment-rest.solr.username";
     private static final String PROPERTY_SOLR_PASSWORD = "appointment-rest.solr.password";
 
-    private static SolrProvider _instance;
-    private static String _strBaseUrl;
-    private static String _strRows;
-    private static BasicAuthorizationAuthenticator _authenticator;
+    private String _strBaseUrl;
+    private String _strRows;
+    private BasicAuthorizationAuthenticator _authenticator;
 
     @Override
     public String getName( )
@@ -76,23 +79,10 @@ public class SolrProvider implements IAppointmentDataProvider
         return PROVIDER_NAME;
     }
 
-    public static synchronized SolrProvider getInstance( )
+    @PostConstruct
+    public void init( )
     {
-        if ( _instance == null )
-        {
-            _instance = new SolrProvider( );
-            _instance.init( );
-        }
-
-        return _instance;
-    }
-
-    private synchronized void init( )
-    {
-        if ( _strBaseUrl == null )
-        {
-            _strBaseUrl = AppPropertiesService.getProperty( PROPERTY_SOLR_BASE_URL );
-        }
+        _strBaseUrl = AppPropertiesService.getProperty( PROPERTY_SOLR_BASE_URL );
         _strRows = AppPropertiesService.getProperty( PROPERTY_SOLR_ROWS, "10000" );
         _authenticator = new BasicAuthorizationAuthenticator( AppPropertiesService.getProperty( PROPERTY_SOLR_USERNAME ),
                 AppPropertiesService.getProperty( PROPERTY_SOLR_PASSWORD ) );
@@ -116,7 +106,7 @@ public class SolrProvider implements IAppointmentDataProvider
         return jsonNode.get( "response" ).get( "docs" ).toString( );
     }
 
-    private static StringBuilder generateAvailableTimeSlotSolrQuery( List<String> appointmentIds, LocalDate startDate, LocalDate endDate,
+    private StringBuilder generateAvailableTimeSlotSolrQuery( List<String> appointmentIds, LocalDate startDate, LocalDate endDate,
             Integer documentNumber )
     {
         String strStartDate = startDate.atStartOfDay( ).format( AppointmentRestConstants.SOLR_DATE_FORMATTER );
@@ -177,7 +167,7 @@ public class SolrProvider implements IAppointmentDataProvider
         return httpAccess.doGet( strUrl, _authenticator, null );
     }
 
-    private static StringBuilder generateManagedMeetingPoints( )
+    private StringBuilder generateManagedMeetingPoints( )
     {
         StringBuilder query = new StringBuilder( );
         query.append( AppointmentRestConstants.SOLR_QUERY_SELECT + AppointmentRestConstants.SOLR_QUERY_Q )

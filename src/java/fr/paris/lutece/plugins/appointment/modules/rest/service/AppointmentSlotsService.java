@@ -37,7 +37,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.paris.lutece.plugins.appointment.modules.rest.business.providers.IAppointmentDataProvider;
-import fr.paris.lutece.plugins.appointment.modules.rest.business.providers.SolrProvider;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.AppointmentSlotsSearchPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.InfoSlot;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrAppointmentSlotPOJO;
@@ -50,6 +49,10 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import fr.paris.lutece.portal.service.util.AppException;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -58,38 +61,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@ApplicationScoped
 public class AppointmentSlotsService
 {
 
     public static final String LUTECE_BASE_URL = "appointment-rest.lutece.base.url";
 
-    private static IAppointmentDataProvider _dataProvider;
-    private static AppointmentSlotsService _instance;
-    private static String _baseUrl;
+    @Inject
+    private IAppointmentDataProvider _dataProvider;
 
-    private AppointmentSlotsService( )
-    {
-    }
+    private String _baseUrl;
 
-    public static synchronized AppointmentSlotsService getInstance( )
+    @PostConstruct
+    public void init( )
     {
-        if ( _instance == null )
-        {
-            _instance = new AppointmentSlotsService( );
-            _instance.init( );
-        }
+        AppLogService.info( "DatatProvider loaded : {}", _dataProvider.getName( ) );
         _baseUrl = AppPropertiesService.getProperty( LUTECE_BASE_URL );
-
-        return _instance;
-    }
-
-    private synchronized void init( )
-    {
-        if ( _dataProvider == null )
-        {
-            _dataProvider = SolrProvider.getInstance( );
-            AppLogService.info( "DatatProvider loaded : " + _dataProvider.getName( ) );
-        }
     }
 
     public Map<String, List<InfoSlot>> getAvailableTimeSlotsAsList( AppointmentSlotsSearchPOJO search )
