@@ -7,7 +7,7 @@
     </parent>
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-appointment-rest</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1-beta-01</version>
     <packaging>lutece-plugin</packaging>
     <name>Lutece appointment rest module</name>
     <scm>
@@ -15,7 +15,7 @@
         <developerConnection>scm:git:https://github.com/lutece-secteur-public/gru-module-appointment-rest.git
         </developerConnection>
         <url>https://github.com/lutece-secteur-public/gru-module-appointment-rest.git</url>
-        <tag>HEAD</tag>
+        <tag>module-appointment-rest-1.0.1-beta-01</tag>
     </scm>
     <properties>
         <jiraComponentId />
