@@ -38,6 +38,10 @@ import fr.paris.lutece.portal.service.util.AppPropertiesService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.math.NumberUtils;
 import java.time.format.DateTimeParseException;
 
 public class QueryParamValidator
@@ -48,12 +52,27 @@ public class QueryParamValidator
     public static final String START_DATE_INVALID = "appointment-rest.validation.invalid.startdate";
     public static final String END_DATE_REQUIRED = "appointment-rest.validation.required.enddate";
     public static final String END_DATE_INVALID = "appointment-rest.validation.invalid.enddate";
+    public static final String MEETING_IDS_INVALID = "appointment-rest.validation.invalid.meetingsids";
+    public static final String DOCUMENTS_NUMBER_INVALID = "appointment-rest.validation.invalid.documentsnumber";
     public static final String REQUIRED = "Required";
+    public static final String INVALID = "Invalid";
+    private static final Pattern PATTERN_MEETING_POINT_ID = Pattern.compile( "[A-Za-z0-9_-]{1,64}" );
 
+    /**
+     * Utility class.
+     */
     private QueryParamValidator()
     {
     }
 
+    /**
+     * Validate the parameters of a search of available time slots: the meeting points and the dates are required, the
+     * meeting point ids are plain identifiers and the number of documents a positive integer.
+     *
+     * @param request
+     *            the request
+     * @return the validation errors, empty when the parameters are valid
+     */
     public static ValidationErrorResponse validate( HttpServletRequest request )
     {
         ValidationErrorResponse errors = new ValidationErrorResponse( );
@@ -71,7 +90,7 @@ public class QueryParamValidator
             if ( !isValideDate( request.getParameter( AppointmentRestConstants.JSON_TAG_START_DATE ) ) )
             {
                 errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_START_DATE,
-                        AppPropertiesService.getProperty( START_DATE_INVALID, "Format du champs start_date invalide" ), "Invalid" ) );
+                        AppPropertiesService.getProperty( START_DATE_INVALID, "Format du champs start_date invalide" ), INVALID ) );
             }
         if ( request.getParameter( AppointmentRestConstants.JSON_TAG_END_DATE ) == null )
         {
@@ -82,11 +101,30 @@ public class QueryParamValidator
             if ( !isValideDate( request.getParameter( AppointmentRestConstants.JSON_TAG_END_DATE ) ) )
             {
                 errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_END_DATE,
-                        AppPropertiesService.getProperty( END_DATE_INVALID, "Format du champs end_date invalide" ), "Invalid" ) );
+                        AppPropertiesService.getProperty( END_DATE_INVALID, "Format du champs end_date invalide" ), INVALID ) );
             }
+        String [ ] meetingPointIds = request.getParameterValues( AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS );
+        if ( meetingPointIds != null && !Arrays.stream( meetingPointIds ).allMatch( id -> PATTERN_MEETING_POINT_ID.matcher( id ).matches( ) ) )
+        {
+            errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_MEETING_POINT_IDS,
+                    AppPropertiesService.getProperty( MEETING_IDS_INVALID, "Format du champs meeting_point_ids invalide" ), INVALID ) );
+        }
+        String strDocumentsNumber = request.getParameter( AppointmentRestConstants.JSON_TAG_DOCUMENTS_NUMBER );
+        if ( strDocumentsNumber != null && NumberUtils.toInt( strDocumentsNumber, 0 ) < 1 )
+        {
+            errors.addDetail( new ValidationErrorResponse.Detail( AppointmentRestConstants.JSON_TAG_DOCUMENTS_NUMBER,
+                    AppPropertiesService.getProperty( DOCUMENTS_NUMBER_INVALID, "Format du champs documents_number invalide" ), INVALID ) );
+        }
         return errors;
     }
 
+    /**
+     * Check that a date has the search format.
+     *
+     * @param dateStr
+     *            the date
+     * @return true if the date can be parsed
+     */
     public static boolean isValideDate( String dateStr )
     {
         try

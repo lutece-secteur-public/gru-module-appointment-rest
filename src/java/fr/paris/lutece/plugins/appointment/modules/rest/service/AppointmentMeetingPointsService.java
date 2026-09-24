@@ -33,12 +33,12 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.rest.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.paris.lutece.plugins.appointment.modules.rest.business.providers.IAppointmentDataProvider;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.MeetingPointPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrMeetingPointPOJO;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrResponseMeetingPointPOJO;
-import fr.paris.lutece.portal.service.util.AppException;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
@@ -47,7 +47,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -63,6 +62,7 @@ public class AppointmentMeetingPointsService
     private IAppointmentDataProvider _dataProvider;
 
     private String _strWebsiteURL;
+    private static final ObjectMapper MAPPER = new ObjectMapper( );
     private static final Pattern ZIP_CITY_PATTERN = Pattern.compile( "(.*)(\\d{5})\\s+(.+)" );
 
     @PostConstruct
@@ -72,39 +72,27 @@ public class AppointmentMeetingPointsService
         _strWebsiteURL = AppPropertiesService.getProperty( PROPERTY_WEBSITE_URL, MeetingPointPOJO.DEFAULT_WEBSITE_URL_RDV );
     }
 
-    public List<MeetingPointPOJO> getManagedMeetingPoints( )
+    /**
+     * Get the meeting points indexed in the search engine, one per appointment form.
+     *
+     * @return the meeting points
+     * @throws HttpAccessException
+     *             if the search engine cannot be reached
+     * @throws JsonProcessingException
+     *             if its answer cannot be read
+     */
+    public List<MeetingPointPOJO> getManagedMeetingPoints( ) throws HttpAccessException, JsonProcessingException
     {
-        List<MeetingPointPOJO> manegedPoints;
-
-        try
+        SolrResponseMeetingPointPOJO solrResponse = MAPPER.readValue( _dataProvider.getManagedMeetingPoints( ), SolrResponseMeetingPointPOJO.class );
+        List<SolrMeetingPointPOJO> solrMeetings = new ArrayList<>( );
+        for ( SolrResponseMeetingPointPOJO.Group group : solrResponse.getGrouped( ).getGroupedByUidForm( ).getGroups( ) )
         {
-            String response = null;
-            response = _dataProvider.getManagedMeetingPoints( );
-
-            ObjectMapper objectMapper = new ObjectMapper( );
-            SolrResponseMeetingPointPOJO solrResponse = null;
-
-            solrResponse = objectMapper.readValue( response, SolrResponseMeetingPointPOJO.class );
-
-            List<SolrMeetingPointPOJO> solrMeetings = new ArrayList<>( );
-
-            for ( SolrResponseMeetingPointPOJO.Group group : solrResponse.getGrouped( ).getGroupedByUidForm( ).getGroups( ) )
+            if ( group.getGroupValue( ) != null )
             {
-                if ( group.getGroupValue( ) != null )
-                {
-                    solrMeetings.addAll( group.getDocList( ).getDocs( ) );
-                }
+                solrMeetings.addAll( group.getDocList( ).getDocs( ) );
             }
-
-            manegedPoints = transform( solrMeetings );
-
-            return manegedPoints;
         }
-        catch( IOException | HttpAccessException e )
-        {
-            AppLogService.error( e.getMessage( ), e );
-            throw new AppException( e.getMessage( ), e );
-        }
+        return transform( solrMeetings );
     }
 
     public List<MeetingPointPOJO> transform( List<SolrMeetingPointPOJO> solrMeetings )

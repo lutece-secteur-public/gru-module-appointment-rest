@@ -55,7 +55,7 @@ public class ValidationErrorResponse
         _detail.add( d );
     }
 
-    static class Detail
+    public static class Detail
     {
         private List<Object> _loc = new ArrayList<>( );
         private String _msg;

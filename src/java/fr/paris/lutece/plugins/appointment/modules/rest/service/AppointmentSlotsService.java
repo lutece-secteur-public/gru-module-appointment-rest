@@ -70,6 +70,8 @@ public class AppointmentSlotsService
     @Inject
     private IAppointmentDataProvider _dataProvider;
 
+    private static final ObjectMapper MAPPER = new ObjectMapper( );
+
     private String _baseUrl;
 
     @PostConstruct
@@ -79,28 +81,26 @@ public class AppointmentSlotsService
         _baseUrl = AppPropertiesService.getProperty( LUTECE_BASE_URL );
     }
 
-    public Map<String, List<InfoSlot>> getAvailableTimeSlotsAsList( AppointmentSlotsSearchPOJO search )
+    /**
+     * Get the available slots of the searched meeting points, grouped by meeting point.
+     *
+     * @param search
+     *            the search
+     * @return the slots of each meeting point
+     * @throws HttpAccessException
+     *             if the search engine cannot be reached
+     * @throws JsonProcessingException
+     *             if its answer cannot be read
+     */
+    public Map<String, List<InfoSlot>> getAvailableTimeSlotsAsList( AppointmentSlotsSearchPOJO search ) throws HttpAccessException, JsonProcessingException
     {
-        String response = null;
-        try
+        String response = _dataProvider.getAvailableTimeSlot( search.getAppointmentIds( ), search.getStartDate( ), search.getEndDate( ),
+                search.getDocumentNumber( ) );
+        List<SolrAppointmentSlotPOJO> solrResponse = MAPPER.readValue( response, new TypeReference<List<SolrAppointmentSlotPOJO>>( )
         {
-            response = _dataProvider.getAvailableTimeSlot( search.getAppointmentIds( ), search.getStartDate( ), search.getEndDate( ),
-                    search.getDocumentNumber( ) );
-
-            ObjectMapper mapper = new ObjectMapper( );
-            TypeReference<List<SolrAppointmentSlotPOJO>> typeReference = new TypeReference<List<SolrAppointmentSlotPOJO>>( )
-            {
-            };
-            List<SolrAppointmentSlotPOJO> solrResponse = mapper.readValue( response, typeReference );
-
-            return solrResponse.stream( ).collect( Collectors.groupingBy( SolrAppointmentSlotPOJO::getUidFormString, Collectors
-                    .mapping( a -> new InfoSlot( buildDate( a.getUrl( ) ), buildUrl( a.getUrl( ), search.getDocumentNumber( ) ) ), Collectors.toList( ) ) ) );
-        }
-        catch (HttpAccessException | JsonProcessingException e)
-        {
-            AppLogService.error( e.getMessage( ), e );
-            throw new AppException( e.getMessage( ), e );
-        }
+        } );
+        return solrResponse.stream( ).collect( Collectors.groupingBy( SolrAppointmentSlotPOJO::getUidFormString, Collectors
+                .mapping( a -> new InfoSlot( buildDate( a.getUrl( ) ), buildUrl( a.getUrl( ), search.getDocumentNumber( ) ) ), Collectors.toList( ) ) ) );
     }
 
     private static LocalDateTime buildDate( String strUrl )
