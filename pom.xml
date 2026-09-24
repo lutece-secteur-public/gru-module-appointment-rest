@@ -13,8 +13,6 @@
     <name>Lutece appointment rest module</name>
 
     <properties>
-        <jiraComponentId />
-        <jiraProjectName>APPOINTMENTREST</jiraProjectName>
         <componentName>appointment-rest</componentName>
     </properties>
 
