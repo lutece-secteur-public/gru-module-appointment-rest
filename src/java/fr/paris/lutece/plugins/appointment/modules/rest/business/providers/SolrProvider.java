@@ -69,6 +69,8 @@ public class SolrProvider implements IAppointmentDataProvider
     private static final String PROPERTY_SOLR_USERNAME = "appointment-rest.solr.username";
     private static final String PROPERTY_SOLR_PASSWORD = "appointment-rest.solr.password";
 
+    private static final String FILTER_FREE_PLACES = "slot_nb_free_places_long:[%d TO *] OR (appointment_multislots_text:true AND slot_nb_free_places_long:[1 TO *])";
+
     private String _strBaseUrl;
     private String _strRows;
     private BasicAuthorizationAuthenticator _authenticator;
@@ -149,6 +151,8 @@ public class SolrProvider implements IAppointmentDataProvider
         query.append( SolrAppointmentSlotPOJO.SOLR_FIELD_MAX_CONSECUTIVES_SLOTS ).append( encoder( AppointmentRestConstants.SOLR_QUERY_COLON ) );
         query.append( encoder( AppointmentRestConstants.SOLR_QUERY_LB ) ).append( documentNumber ).append( encoder( AppointmentRestConstants.SOLR_QUERY_TO ) )
                 .append( AppointmentRestConstants.SOLR_QUERY_STAR ).append( encoder( AppointmentRestConstants.SOLR_QUERY_RB ) );
+        query.append( AppointmentRestConstants.SOLR_QUERY_FILTER_QUERY );
+        query.append( encoder( String.format( FILTER_FREE_PLACES, documentNumber ) ) );
         query.append( AppointmentRestConstants.SOLR_QUERY_FILTER_ROWS + _strRows );
         return query;
     }
