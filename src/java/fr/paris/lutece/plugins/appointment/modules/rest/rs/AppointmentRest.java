@@ -73,6 +73,7 @@ public class AppointmentRest
     private static final String HEADER_HUB_AUTH_TOKEN = "X-Hub-Rdv-Auth-Token";
     private static final int DEFAULT_DOCUMENTS_NUMBER = 1;
     private static final int STATUS_UNPROCESSABLE_ENTITY = 422;
+    private static final String JSON_TAG_DETAIL = "detail";
     private static final ObjectMapper MAPPER = new ObjectMapper( ).registerModule( new JavaTimeModule( ) );
 
     @Inject
@@ -126,12 +127,12 @@ public class AppointmentRest
         catch( HttpAccessException e )
         {
             AppLogService.error( e.getMessage( ), e );
-            return Response.status( Response.Status.SERVICE_UNAVAILABLE ).entity( AppPropertiesService.getProperty( SOLR_EXCEPTION ) ).build( );
+            return error( Response.Status.SERVICE_UNAVAILABLE, AppPropertiesService.getProperty( SOLR_EXCEPTION ) );
         }
         catch( JsonProcessingException e )
         {
             AppLogService.error( e.getMessage( ), e );
-            return Response.status( Response.Status.BAD_GATEWAY ).entity( AppPropertiesService.getProperty( JSON_EXCEPTION ) ).build( );
+            return error( Response.Status.BAD_GATEWAY, AppPropertiesService.getProperty( JSON_EXCEPTION ) );
         }
     }
 
@@ -159,12 +160,12 @@ public class AppointmentRest
         catch( HttpAccessException e )
         {
             AppLogService.error( e.getMessage( ), e );
-            return Response.status( Response.Status.SERVICE_UNAVAILABLE ).entity( AppPropertiesService.getProperty( SOLR_EXCEPTION ) ).build( );
+            return error( Response.Status.SERVICE_UNAVAILABLE, AppPropertiesService.getProperty( SOLR_EXCEPTION ) );
         }
         catch( JsonProcessingException e )
         {
             AppLogService.error( e.getMessage( ), e );
-            return Response.status( Response.Status.BAD_GATEWAY ).entity( AppPropertiesService.getProperty( JSON_EXCEPTION ) ).build( );
+            return error( Response.Status.BAD_GATEWAY, AppPropertiesService.getProperty( JSON_EXCEPTION ) );
         }
     }
 
@@ -183,6 +184,21 @@ public class AppointmentRest
     private static Response json( int nStatus, Object entity ) throws JsonProcessingException
     {
         return Response.status( nStatus ).type( MediaType.APPLICATION_JSON_TYPE ).entity( MAPPER.writeValueAsString( entity ) ).build( );
+    }
+
+    /**
+     * Write an error answer as JSON, {"detail": "message"}, so that the body matches the announced content type.
+     *
+     * @param status
+     *            the HTTP status
+     * @param strMessage
+     *            the error message
+     * @return the JSON error answer
+     */
+    private static Response error( Response.Status status, String strMessage )
+    {
+        return Response.status( status ).type( MediaType.APPLICATION_JSON_TYPE )
+                .entity( MAPPER.createObjectNode( ).put( JSON_TAG_DETAIL, strMessage ).toString( ) ).build( );
     }
 
     /**
