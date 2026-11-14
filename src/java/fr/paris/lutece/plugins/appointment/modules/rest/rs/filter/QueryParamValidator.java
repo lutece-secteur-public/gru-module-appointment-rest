@@ -119,7 +119,7 @@ public class QueryParamValidator
     }
 
     /**
-     * Check that a date has the search format.
+     * Check that a date has the search format and exists in the calendar.
      *
      * @param dateStr
      *            the date

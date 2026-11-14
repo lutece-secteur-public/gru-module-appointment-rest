@@ -34,6 +34,7 @@
 package fr.paris.lutece.plugins.appointment.modules.rest.util.contsants;
 
 import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 
 public class AppointmentRestConstants
 {
@@ -79,7 +80,7 @@ public class AppointmentRestConstants
     public static final String SOLR_QUERY_TRUE = "true";
     public static final String SOLR_QUERY_NOW = "NOW";
 
-    public static final DateTimeFormatter SEARCH_DATE_FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd" );
+    public static final DateTimeFormatter SEARCH_DATE_FORMATTER = DateTimeFormatter.ofPattern( "uuuu-MM-dd" ).withResolverStyle( ResolverStyle.STRICT );
     public static final DateTimeFormatter SOLR_DATE_FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm:ss.SS'Z'" );
     public static final DateTimeFormatter SOLR_RESPONSE_DATE_FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm" );
 

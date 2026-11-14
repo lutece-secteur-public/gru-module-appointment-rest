@@ -90,4 +90,19 @@ public class QueryParamValidatorTest extends LuteceTestCase
         request.addParameter( "documents_number", "abc" );
         assertEquals( 1, QueryParamValidator.validate( request ).getDetail( ).size( ) );
     }
+
+    /**
+     * A date that does not exist in the calendar is refused instead of being moved to another day.
+     */
+    @Test
+    public void testImpossibleDateRefused( )
+    {
+        MockHttpServletRequest request = new MockHttpServletRequest( );
+        request.addParameter( "meeting_point_ids", "9001" );
+        request.addParameter( "start_date", "2026-02-30" );
+        request.addParameter( "end_date", "2026-03-15" );
+        assertFalse( QueryParamValidator.isValideDate( "2026-02-30" ) );
+        assertEquals( 1, QueryParamValidator.validate( request ).getDetail( ).size( ) );
+        assertTrue( QueryParamValidator.isValideDate( "2028-02-29" ) );
+    }
 }

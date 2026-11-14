@@ -128,4 +128,25 @@ public class AppointmentRestTest extends LuteceTestCase
         assertJsonError( unreachableSearchEngine( ).getAvailableTimeSlots( request, List.of( "9001" ), "2026-10-01", "2026-10-15", null, null ) );
     }
 
+    /**
+     * A date that does not exist in the calendar is answered with the JSON validation error of the module.
+     *
+     * @throws Exception
+     *             if the body is not JSON
+     */
+    @Test
+    public void testImpossibleDateAnswersValidationError( ) throws Exception
+    {
+        MockHttpServletRequest request = new MockHttpServletRequest( );
+        request.addParameter( "meeting_point_ids", "9001" );
+        request.addParameter( "start_date", "2026-02-30" );
+        request.addParameter( "end_date", "2026-03-15" );
+        Response response = unreachableSearchEngine( ).getAvailableTimeSlots( request, List.of( "9001" ), "2026-02-30", "2026-03-15", null, null );
+        assertEquals( 422, response.getStatus( ) );
+        assertEquals( MediaType.APPLICATION_JSON_TYPE, response.getMediaType( ) );
+        JsonNode detail = MAPPER.readTree( (String) response.getEntity( ) ).path( "detail" );
+        assertEquals( 1, detail.size( ) );
+        assertEquals( "start_date", detail.get( 0 ).path( "loc" ).get( 0 ).asText( ) );
+        assertEquals( "Invalid", detail.get( 0 ).path( "type" ).asText( ) );
+    }
 }
