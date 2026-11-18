@@ -33,7 +33,9 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.rest.business.providers;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.paris.lutece.plugins.appointment.modules.rest.pojo.SolrAppointmentSlotPOJO;
@@ -103,9 +105,29 @@ public class SolrProvider implements IAppointmentDataProvider
         String strUrl = _strBaseUrl + query;
 
         String response = httpAccess.doGet( strUrl, _authenticator, null );
+        return getDocs( response );
+    }
+
+    /**
+     * Get the documents of a search engine response
+     *
+     * @param strResponse
+     *            the body of the response
+     * @return the JSON array of the documents
+     * @throws JsonProcessingException
+     *             if the body is not JSON or has no list of documents
+     */
+    static String getDocs( String strResponse ) throws JsonProcessingException
+    {
         ObjectMapper mapper = new ObjectMapper( );
-        JsonNode jsonNode = mapper.readTree( response );
-        return jsonNode.get( "response" ).get( "docs" ).toString( );
+        JsonNode jsonNode = mapper.readTree( strResponse );
+        JsonNode docs = ( jsonNode == null ) ? null : jsonNode.path( "response" ).path( "docs" );
+        if ( docs == null || !docs.isArray( ) )
+        {
+            // A JSON body without response.docs is an invalid answer of the search engine, as a body that is not JSON
+            throw JsonMappingException.from( (JsonParser) null, "The search engine response has no response.docs list" );
+        }
+        return docs.toString( );
     }
 
     private StringBuilder generateAvailableTimeSlotSolrQuery( List<String> appointmentIds, LocalDate startDate, LocalDate endDate,
