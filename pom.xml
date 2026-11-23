@@ -7,7 +7,7 @@
     </parent>
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-appointment-rest</artifactId>
-    <version>1.0.1-beta-01</version>
+    <version>1.0.1</version>
     <packaging>lutece-plugin</packaging>
     <name>Lutece appointment rest module</name>
     <scm>
