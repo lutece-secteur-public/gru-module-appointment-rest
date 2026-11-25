@@ -45,6 +45,9 @@ import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.util.httpaccess.HttpAccessException;
 import fr.paris.lutece.util.url.UrlItem;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import fr.paris.lutece.portal.service.util.AppException;
@@ -57,6 +60,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,6 +76,7 @@ public class AppointmentSlotsService
     private IAppointmentDataProvider _dataProvider;
 
     private static final ObjectMapper MAPPER = new ObjectMapper( );
+    private static final Logger LOGGER = LogManager.getLogger( "lutece.application" );
 
     private String _baseUrl;
 
@@ -99,8 +105,45 @@ public class AppointmentSlotsService
         List<SolrAppointmentSlotPOJO> solrResponse = MAPPER.readValue( response, new TypeReference<List<SolrAppointmentSlotPOJO>>( )
         {
         } );
-        return solrResponse.stream( ).collect( Collectors.groupingBy( SolrAppointmentSlotPOJO::getUidFormString, Collectors
-                .mapping( a -> new InfoSlot( buildDate( a.getUrl( ) ), buildUrl( a.getUrl( ), search.getDocumentNumber( ) ) ), Collectors.toList( ) ) ) );
+        // a document without form id or without a URL holding the starting date is skipped (warning), not a 500 for the whole answer
+        Map<String, List<InfoSlot>> mapSlots = new LinkedHashMap<>( );
+        for ( SolrAppointmentSlotPOJO slot : solrResponse )
+        {
+            InfoSlot infoSlot = toInfoSlot( slot, search.getDocumentNumber( ) );
+            if ( infoSlot != null )
+            {
+                mapSlots.computeIfAbsent( slot.getUidFormString( ), k -> new ArrayList<>( ) ).add( infoSlot );
+            }
+        }
+        return mapSlots;
+    }
+
+    /**
+     * Converts a document of the search engine to a slot
+     *
+     * @param slot
+     *            the document
+     * @param nDocumentNumber
+     *            the number of documents (places to take)
+     * @return the slot, or null if the document has no form id, no URL or no valid starting date
+     */
+    private InfoSlot toInfoSlot( SolrAppointmentSlotPOJO slot, Integer nDocumentNumber )
+    {
+        if ( slot == null || StringUtils.isBlank( slot.getUidFormString( ) ) || StringUtils.isBlank( slot.getUrl( ) ) )
+        {
+            LOGGER.warn( "Search engine slot document skipped: no form id or no URL ({})", slot == null ? null : slot.getUidFormString( ) );
+            return null;
+        }
+        try
+        {
+            return new InfoSlot( buildDate( slot.getUrl( ) ), buildUrl( slot.getUrl( ), nDocumentNumber ) );
+        }
+        catch( RuntimeException e )
+        {
+            LOGGER.warn( "Search engine slot document skipped: invalid URL or starting date ({} {}): {}", slot.getUidFormString( ),
+                    StringUtils.abbreviate( slot.getUrl( ), 200 ), e.getMessage( ) );
+            return null;
+        }
     }
 
     private static LocalDateTime buildDate( String strUrl )
